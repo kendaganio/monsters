@@ -6,7 +6,7 @@ set :application, "monsters"
 server "50.56.246.165", :web, :app, :db, primary: true
 
 # git stuff
-set :repository, "git@github.com/kendaganio:monsters.git"
+set :repository, "git@github.com:kendaganio/monsters.git"
 set :scm, :git
 set :branch, :master
 
