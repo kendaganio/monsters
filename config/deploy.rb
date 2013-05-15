@@ -23,6 +23,36 @@ after "deploy:restart", "deploy:cleanup"
 default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
 
+# Unicorn config
+set :unicorn_config, "#{current_path}/config/unicorn.rb"
+set :unicorn_binary, "bash -c 'bundle exec unicorn_rails -c #{unicorn_config} -E #{rails_env} -D'"
+set :unicorn_pid, "#{current_path}/tmp/pids/unicorn.pid"
+set :su_rails, "sudo -u #{user}"
+
+namespace :deploy do
+  task :start, :roles => :app, :except => { :no_release => true } do
+    # Start unicorn server using sudo (rails)
+    run "cd #{current_path} && #{su_rails} #{unicorn_binary}"
+  end
+ 
+  task :stop, :roles => :app, :except => { :no_release => true } do
+    run "if [ -f #{unicorn_pid} ]; then #{su_rails} kill `cat #{unicorn_pid}`; fi"
+  end
+ 
+  task :graceful_stop, :roles => :app, :except => { :no_release => true } do
+    run "if [ -f #{unicorn_pid} ]; then #{su_rails} kill -s QUIT `cat #{unicorn_pid}`; fi"
+  end
+ 
+  task :reload, :roles => :app, :except => { :no_release => true } do
+    run "if [ -f #{unicorn_pid} ]; then #{su_rails} kill -s USR2 `cat #{unicorn_pid}`; fi"
+  end
+ 
+  task :restart, :roles => :app, :except => { :no_release => true } do
+    stop
+    start
+  end
+end
+
 # if you're still using the script/reaper helper you will need
 # these http://github.com/rails/irs_process_scripts
 
