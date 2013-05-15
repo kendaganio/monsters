@@ -21,6 +21,8 @@ after "deploy:restart", "deploy:cleanup"
 set :use_sudo, :false
 
 default_run_options[:pty] = true
+ssh_options[:forward_agent] = true
+
 # if you're still using the script/reaper helper you will need
 # these http://github.com/rails/irs_process_scripts
 
