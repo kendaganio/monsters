@@ -17,8 +17,10 @@ set :deploy_to, "/home/#{user}/apps/#{application}"
 set :deploy_via, :remote_cache
 
 # Fix permissions
+= begin
 before "deploy:start", "deploy:fix_permissions"
 after "deploy:restart", "deploy:fix_permissions"
+= end
 
 # if you want to clean up old releases on each deploy uncomment this:
 after "deploy:restart", "deploy:cleanup"
@@ -55,6 +57,7 @@ namespace :deploy do
     start
   end
 
+= begin
   task :fix_permissions, :roles => :app, :except => { :no_release => true } do
     # To prevent access errors while moving/deleting
     run "#{sudo} chmod 775 #{current_path}/log"
@@ -62,8 +65,9 @@ namespace :deploy do
     run "#{sudo} find #{current_path}/log/ -exec chown #{user}:#{user} {} \\;"
     run "#{sudo} find #{current_path}/tmp/ -type f -exec chmod 664 {} \\;"
     run "#{sudo} find #{current_path}/tmp/ -type d -exec chmod 775 {} \\;"
-    run "#{sudo} find #{current_path}/tmp/ -exec chown #{user}:#{user} {} \\;"
-  end
+    run "#{sudo} find #{current_path}/tmp/ -exec chown #{user}:#{user_rails} {} \\;"
+  end 
+= end
 
 end
 
