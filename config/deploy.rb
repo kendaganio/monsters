@@ -3,7 +3,7 @@ require 'bundler/capistrano'
 # basic shit
 set :user, "ken"
 set :application, "monsters"
-server "50.56.245.165", :web, :app, :db, primary: true
+server "50.56.246.165", :web, :app, :db, primary: true
 
 # git stuff
 set :repository,  "git@github.com/kendaganio:monsters.git"
