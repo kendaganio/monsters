@@ -1,18 +1,26 @@
 require 'bundler/capistrano'
 
+# basic shit
 set :user, "ken"
 set :application, "monsters"
+server "50.56.245.165", :web, :app, :db, primary: true
+
+# git stuff
 set :repository,  "git@github.com/kendaganio:monsters.git"
 set :scm, :git
+set :branch, :master
 
+# deploy specific shit
+set :deploy_to, "/home/#{user}/apps/#{application}"
+set :deploy_via, :remote_cache
 
-role :web, "50.56.245.165"
-role :app, "50.56.245.165"
-role :db,  "50.56.245.165", primary: true
 
 # if you want to clean up old releases on each deploy uncomment this:
 after "deploy:restart", "deploy:cleanup"
 
+set :use_sudo, :false
+
+default_run_options[:pty] = true
 # if you're still using the script/reaper helper you will need
 # these http://github.com/rails/irs_process_scripts
 
