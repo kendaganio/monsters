@@ -2,7 +2,7 @@
 worker_processes 4
  
 # App location
-@app = "/home/ken/apps/monsters"
+@app = "/home/ken/apps/monsters/current"
  
 # Listen on fs socket for better performance
 listen "#{@app}/tmp/sockets/unicorn.sock", :backlog => 64
