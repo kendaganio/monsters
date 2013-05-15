@@ -28,58 +28,24 @@ after "deploy:restart", "deploy:cleanup"
 
 default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
-
-# Unicorn config
-set :unicorn_config, "#{current_path}/config/unicorn.rb"
-set :unicorn_binary, "bash -c 'source /etc/profile.d/rvm.sh && bundle exec unicorn_rails -c #{unicorn_config} -E #{rails_env} -D'"
-set :unicorn_pid, "#{current_path}/tmp/pids/unicorn.pid"
-set :su_rails, "sudo -u #{user}"
+set :use_sudo, false
 
 namespace :deploy do
-  task :start, :roles => :app, :except => { :no_release => true } do
-    # Start unicorn server using sudo (rails)
-    run "cd #{current_path} && #{su_rails} #{unicorn_binary}"
-  end
- 
-  task :stop, :roles => :app, :except => { :no_release => true } do
-    run "if [ -f #{unicorn_pid} ]; then #{su_rails} kill `cat #{unicorn_pid}`; fi"
-  end
- 
-  task :graceful_stop, :roles => :app, :except => { :no_release => true } do
-    run "if [ -f #{unicorn_pid} ]; then #{su_rails} kill -s QUIT `cat #{unicorn_pid}`; fi"
-  end
- 
-  task :reload, :roles => :app, :except => { :no_release => true } do
-    run "if [ -f #{unicorn_pid} ]; then #{su_rails} kill -s USR2 `cat #{unicorn_pid}`; fi"
-  end
- 
-  task :restart, :roles => :app, :except => { :no_release => true } do
-    stop
-    start
+
+  %w[start stop restart].each do |command|
+    desc "#{command} unicorn server"
+    task command, roles: :app, except: {no_release: true} do
+      run "/etc/init.d/unicorn_#{application} #{command}"
+    end
   end
 
-=begin
-  task :fix_permissions, :roles => :app, :except => { :no_release => true } do
-    # To prevent access errors while moving/deleting
-    run "#{sudo} chmod 775 #{current_path}/log"
-    run "#{sudo} find #{current_path}/log/ -type f -exec chmod 664 {} \\;"
-    run "#{sudo} find #{current_path}/log/ -exec chown #{user}:#{user} {} \\;"
-    run "#{sudo} find #{current_path}/tmp/ -type f -exec chmod 664 {} \\;"
-    run "#{sudo} find #{current_path}/tmp/ -type d -exec chmod 775 {} \\;"
-    run "#{sudo} find #{current_path}/tmp/ -exec chown #{user}:#{user_rails} {} \\;"
-  end 
-=end
+  task :setup_config, roles: :app do
+    sudo "ln -nfs #{current_path}/config/nginx.conf /etc/nginx/sites-enabled/#{application}"
+    sudo "ln -nfs #{current_path}/config/unicorn_init.sh /etc/init.d/unicorn_#{application}"
+    run "mkdir -p #{shared_path}/config"
+    put File.read("config/database.example.yml"), "#{shared_path}/config/database.yml"
+    puts "Now edit the config files in #{shared_path}."
+  end
+  after "deploy:setup", "deploy:setup_config"
 
 end
-
-# if you're still using the script/reaper helper you will need
-# these http://github.com/rails/irs_process_scripts
-
-# If you are using Passenger mod_rails uncomment this:
-# namespace :deploy do
-#   task :start do ; end
-#   task :stop do ; end
-#   task :restart, :roles => :app, :except => { :no_release => true } do
-#     run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
-#   end
-# end
