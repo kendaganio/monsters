@@ -23,6 +23,7 @@ after "deploy:restart", "deploy:fix_permissions"
 =end
 
 # if you want to clean up old releases on each deploy uncomment this:
+before("deploy:cleanup") { set :use_sudo, false }
 after "deploy:restart", "deploy:cleanup"
 
 default_run_options[:pty] = true
