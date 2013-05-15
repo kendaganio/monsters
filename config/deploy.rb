@@ -18,8 +18,6 @@ set :deploy_via, :remote_cache
 # if you want to clean up old releases on each deploy uncomment this:
 after "deploy:restart", "deploy:cleanup"
 
-set :use_sudo, :false
-
 default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
 
