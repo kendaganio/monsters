@@ -16,6 +16,9 @@ set :branch, :master
 set :deploy_to, "/home/#{user}/apps/#{application}"
 set :deploy_via, :remote_cache
 
+# Fix permissions
+before "deploy:start", "deploy:fix_permissions"
+after "deploy:restart", "deploy:fix_permissions"
 
 # if you want to clean up old releases on each deploy uncomment this:
 after "deploy:restart", "deploy:cleanup"
@@ -51,6 +54,17 @@ namespace :deploy do
     stop
     start
   end
+
+  task :fix_permissions, :roles => :app, :except => { :no_release => true } do
+    # To prevent access errors while moving/deleting
+    run "#{sudo} chmod 775 #{current_path}/log"
+    run "#{sudo} find #{current_path}/log/ -type f -exec chmod 664 {} \\;"
+    run "#{sudo} find #{current_path}/log/ -exec chown #{user}:#{user_rails} {} \\;"
+    run "#{sudo} find #{current_path}/tmp/ -type f -exec chmod 664 {} \\;"
+    run "#{sudo} find #{current_path}/tmp/ -type d -exec chmod 775 {} \\;"
+    run "#{sudo} find #{current_path}/tmp/ -exec chown #{user}:#{user_rails} {} \\;"
+  end
+
 end
 
 # if you're still using the script/reaper helper you will need
