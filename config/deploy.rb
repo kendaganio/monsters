@@ -1,10 +1,12 @@
 require 'bundler/capistrano'
+require 'rvm/capistrano'
 
 # basic shit
 set :user, "ken"
 set :application, "monsters"
 server "50.56.246.165", :web, :app, :db, primary: true
 
+set :rvm_ruby_string, '1.9.3@monsters'
 # git stuff
 set :repository, "git@github.com:kendaganio/monsters.git"
 set :scm, :git
